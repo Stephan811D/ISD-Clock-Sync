@@ -4,7 +4,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-int k = 0;
+int k[4] = 0;
+int initReceived[4][4] = 0;
 int participantsAmount = 3;
 int currentNode = 0;
 
@@ -33,7 +34,6 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             switch (sender)
             {
             case 0:
-            int xxx=0;
                 break;
             case 1:
                 break;
