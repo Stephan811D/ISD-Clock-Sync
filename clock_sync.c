@@ -33,6 +33,7 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             switch (sender)
             {
             case 0:
+            int xxx=0;
                 break;
             case 1:
                 break;
