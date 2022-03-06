@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
+// dere
 int k[4] = 0;
 int initReceived[4][4] = 0;
 int participantsAmount = 3;
