@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum
 {
@@ -23,7 +24,7 @@ extern "C"
     void start(uint8_t id);
     void receive(uint8_t sender, uint8_t receiver, message_t message);
     void round_action(uint8_t p, uint64_t round, uint64_t clock);
-    void sendToAllOtherParticipants(uint8_t sender, uint8_t participants, message_t message);
+    void sendToAllOtherParticipants(uint8_t sender, uint8_t participants, message_t message, bool loopback);
 #ifdef __cplusplus
 }
 #endif
