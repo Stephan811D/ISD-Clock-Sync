@@ -11,6 +11,11 @@ int node1_initReceived[4] = {0, 0, 0, 0};
 int node2_initReceived[4] = {0, 0, 0, 0};
 int node3_initReceived[4] = {0, 0, 0, 0};
 
+int node0_echoReceived[4] = {0, 0, 0, 0};
+int node1_echoReceived[4] = {0, 0, 0, 0};
+int node2_echoReceived[4] = {0, 0, 0, 0};
+int node3_echoReceived[4] = {0, 0, 0, 0};
+
 int node0_localK = 0;
 int node1_localK = 0;
 int node2_localK = 0;
@@ -32,15 +37,14 @@ void start(uint8_t id)
 
 void receive(uint8_t sender, uint8_t receiver, message_t message)
 {
-    // printf("value %d\n", message.value);
-    // printf("type %d\n", message.message_type);
-
     printf("Receive: Sender: %d Receiver: %d Type: %d Value: %d \n", sender, receiver, message.message_type, message.value);
+    printf("0: %d 1: %d 2: %d 3: %d\n", node0_localK, node1_localK, node2_localK, node3_localK);
 
     if (message.message_type == init_message)
     {
         // uint64_t test = message.value;
-        message_t message = {echo_message, message.value};
+        message_t echoMessage = {echo_message, message.value};
+        // echoMessage.value = echoMessage.value + 2;
 
         switch (receiver)
         {
@@ -48,11 +52,12 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             node0_initReceived[sender] = 1;
             if (checkSecondInitReceived(node0_initReceived))
             {
-
                 printf("receiver %d got 2nd init sending echo to everyone\n", receiver);
-                send(0, 1, message);
-
-                // sendToAllOtherParticipants(receiver, 4, message, true);
+                sendToAllOtherParticipants(receiver, 4, echoMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node0_initReceived[i] = 0;
+                }
             }
             break;
         case 1:
@@ -60,7 +65,11 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             if (checkSecondInitReceived(node1_initReceived))
             {
                 printf("receiver %d got 2nd init sending echo to everyone\n", receiver);
-                sendToAllOtherParticipants(receiver, 4, message, true);
+                sendToAllOtherParticipants(receiver, 4, echoMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node1_initReceived[i] = 0;
+                }
             }
             break;
         case 2:
@@ -68,7 +77,11 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             if (checkSecondInitReceived(node2_initReceived))
             {
                 printf("receiver %d got 2nd init sending echo to everyone\n", receiver);
-                sendToAllOtherParticipants(receiver, 4, message, true);
+                sendToAllOtherParticipants(receiver, 4, echoMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node2_initReceived[i] = 0;
+                }
             }
             break;
         case 3:
@@ -76,18 +89,75 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             if (checkSecondInitReceived(node3_initReceived))
             {
                 printf("receiver %d got 2nd init sending echo to everyone\n", receiver);
-                sendToAllOtherParticipants(receiver, 4, message, true);
+                sendToAllOtherParticipants(receiver, 4, echoMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node3_initReceived[i] = 0;
+                }
             }
             break;
         }
     }
     else if (message.message_type == echo_message)
     {
-        if (message.value == k || message.value == k + 1)
+        switch (receiver)
         {
-            printf("\n GOT ECHO \n");
-            message_t message = {echo_message, k};
-            // sendToAllOtherParticipants(sender, participantsAmount, message, true);
+        case 0:
+            node0_echoReceived[sender] = 1;
+            if (checkEchoReceived(node0_echoReceived, message, node0_localK))
+            {
+                printf("echo: receiver: %d\n", receiver);
+                node0_localK = node0_localK + 1;
+                message_t initMessage = {init_message, node0_localK};
+                sendToAllOtherParticipants(receiver, 4, initMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node0_echoReceived[i] = 0;
+                }
+            }
+            break;
+        case 1:
+            node1_echoReceived[sender] = 1;
+            if (checkEchoReceived(node1_echoReceived, message, node1_localK))
+            {
+                printf("echo: receiver: %d\n", receiver);
+                node1_localK = node1_localK + 1;
+                message_t initMessage = {init_message, node1_localK};
+                sendToAllOtherParticipants(receiver, 4, initMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node1_echoReceived[i] = 0;
+                }
+            }
+            break;
+        case 2:
+            node2_echoReceived[sender] = 1;
+            if (checkEchoReceived(node2_echoReceived, message, node2_localK))
+            {
+                printf("echo: receiver: %d\n", receiver);
+                node2_localK = node2_localK + 1;
+                message_t initMessage = {init_message, node2_localK};
+                sendToAllOtherParticipants(receiver, 4, initMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node2_echoReceived[i] = 0;
+                }
+            }
+            break;
+        case 3:
+            node3_echoReceived[sender] = 1;
+            if (checkEchoReceived(node3_echoReceived, message, node3_localK))
+            {
+                printf("echo: receiver: %d\n", receiver);
+                node3_localK = node3_localK + 1;
+                message_t initMessage = {init_message, node3_localK};
+                sendToAllOtherParticipants(receiver, 4, initMessage, true);
+                for (int i = 0; i < 4; i++)
+                {
+                    node3_echoReceived[i] = 0;
+                }
+            }
+            break;
         }
     }
     else
@@ -98,8 +168,6 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
 
 void sendToAllOtherParticipants(uint8_t sender, uint8_t participants, message_t message, bool loopback)
 {
-    printf("HIER: %d", message.value);
-
     for (int i = 0; i < participants; i++)
     {
         if (i != sender || loopback)
@@ -120,6 +188,28 @@ int checkSecondInitReceived(int node[])
     }
 
     if (buffer == 2)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int checkEchoReceived(int node[], message_t message, int node_localK)
+{
+    int buffer = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (message.value == node_localK || message.value == node_localK + 1)
+        {
+            buffer = buffer + node[i];
+        }
+        // printf("FUNCTION: %d %d %d %d %d\n", node[0], node[1], node[2], node[3], buffer);
+    }
+
+    if (buffer == 3)
     {
         return 1;
     }
