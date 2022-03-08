@@ -25,6 +25,7 @@ extern "C"
     void receive(uint8_t sender, uint8_t receiver, message_t message);
     void round_action(uint8_t p, uint64_t round, uint64_t clock);
     void sendToAllOtherParticipants(uint8_t sender, uint8_t participants, message_t message, bool loopback);
+    int checkSecondInitReceived(int node[]);
 #ifdef __cplusplus
 }
 #endif
