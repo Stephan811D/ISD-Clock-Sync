@@ -56,6 +56,7 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
         {
         case 0:
             node0_initReceived[sender] = 1;
+            // Zeile 5-10 Pseudocode
             if (message.value == 0 && node0_echoSent)
             {
                 // re-send last (echo) to p
@@ -64,6 +65,7 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
             {
                 // resend init 0 to p
             }
+            // Zeile 12-14 Pseudocode
             if (checkSecondInitReceived(node0_initReceived))
             {
                 printf("receiver %d got 2nd init sending echo to everyone\n", receiver);
@@ -123,12 +125,14 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
         case 0:
             node0_echoReceived[sender] = 1;
             node0_echoValueReceived[sender] = message.value;
+            // Zeile 16-18 Pseudocode
             if (checkEchoReceived(node0_echoReceived, message, node0_localK, 2, true, node0_echoValueReceived))
             {
                 printf("echo 2: receiver: %d\n", receiver);
                 message_t echoMessage = {echo_message, message.value};
                 sendToAllOtherParticipants(receiver, 4, echoMessage, true);
             }
+            // Zeile 19-23 Pseudocode
             else if (checkEchoReceived(node0_echoReceived, message, node0_localK, 3, false, node0_echoValueReceived))
             {
                 printf("echo 3: receiver: %d\n", receiver);
