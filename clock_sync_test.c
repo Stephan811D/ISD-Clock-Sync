@@ -15,7 +15,7 @@ typedef struct message_queue_struct
 
 message_queue_t *messages = NULL;
 uint64_t now = 0;
-uint64_t round_len = 100;
+uint64_t round_len = 500;
 
 void insert_message(message_queue_t *new)
 {
