@@ -15,6 +15,17 @@ typedef struct message_struct
     uint64_t value;
 } message_t;
 
+typedef struct node_struct
+{
+    int8_t id;
+    uint32_t localK;
+    uint16_t round;
+    int initValueReceived[4];
+    int echoValueReceived[4];
+    bool echoSent;
+    int16_t lastEcho;
+} Node;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -24,9 +35,11 @@ extern "C"
     void start(uint8_t id);
     void receive(uint8_t sender, uint8_t receiver, message_t message);
     void round_action(uint8_t p, uint64_t round, uint64_t clock);
-    void sendToAllOtherParticipants(uint8_t sender, uint8_t participants, message_t message, bool loopback);
-    int checkSecondInitReceived(int node[]);
-    int checkEchoReceived(int node[], message_t message, int node_localK, int atLeast, bool receiverBigger, int node_echo[])
+    void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint32_t value);
+    int acceptInitK(int initValuesArray[], int value);
+    int acceptEchoK(int echoValuesArray[], int value);
+    int progress(int echoValuesArray[], int value);
+    int catchUp(int echoValuesArray[], int value);
 #ifdef __cplusplus
 }
 #endif

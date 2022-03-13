@@ -4,6 +4,8 @@
 
 #include "clock_sync.h"
 
+#define n 4
+
 typedef struct message_queue_struct
 {
     uint8_t sender;
@@ -15,7 +17,7 @@ typedef struct message_queue_struct
 
 message_queue_t *messages = NULL;
 uint64_t now = 0;
-uint64_t round_len = 500;
+uint64_t round_len = 100;
 
 void insert_message(message_queue_t *new)
 {
@@ -41,7 +43,14 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     new->message = message;
     new->delivery_time = now + rand() % ((9 * round_len) / 10) + 1;
     new->next = NULL;
+
+    // printf("%d \n", rand() % n);
+    // printf("%d \n", receiver);
+
+    // if (!(receiver == rand() % n))
+    //{
     insert_message(new);
+    //}
 }
 
 void round_action(uint8_t p, uint64_t round, uint64_t clock)
@@ -63,10 +72,17 @@ int main()
         {
             message_queue_t *message = messages;
             messages = messages->next;
-            receive(message->sender, message->receiver, message->message);
+
+            // if (!(message->receiver == rand() % n))
+            {
+                receive(message->sender, message->receiver, message->message);
+            }
+
             free(message);
         }
         now++;
-        printf("%llu\n", now);
+        // printf("%llu\n", now);
     } while (messages != NULL && now < 10000 * round_len);
 }
+
+// uint64_t

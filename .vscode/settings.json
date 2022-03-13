@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "system_error": "c",
+        "clock_sync.h": "c",
+        "random": "c",
+        "cmath": "c",
+        "cstdlib": "c",
+        "algorithm": "c"
+    }
+}
