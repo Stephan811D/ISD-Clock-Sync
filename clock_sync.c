@@ -37,6 +37,8 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
     // printf("K0=%d K1=%d K2=%d K3=%d\n", nodes[0].localK, nodes[1].localK, nodes[2].localK, nodes[3].localK);
 
     // uint32_t k = nodes[receiver].localK;
+    uint32_t *k;
+    k=&nodes[receiver].localK;
     if (message.message_type == init_message)
     {
         nodes[receiver].initValueReceived[sender] = message.value;
@@ -52,38 +54,38 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
                 sendMessage(receiver, sender, 0, 0);
             }
         }
-        if (acceptInitK(nodes[receiver].initValueReceived, nodes[receiver].localK))
+        if (acceptInitK(nodes[receiver].initValueReceived, *k))
         {
-            sendMessage(receiver, -1, 1, nodes[receiver].localK);
+            sendMessage(receiver, -1, 1, *k);
         }
     }
     else if (message.message_type == echo_message)
     {
         nodes[receiver].echoValueReceived[sender] = message.value;
-        if (acceptEchoK(nodes[receiver].echoValueReceived, nodes[receiver].localK))
+        if (acceptEchoK(nodes[receiver].echoValueReceived, *k))
         {
-            sendMessage(receiver, -1, 1, nodes[receiver].localK);
+            sendMessage(receiver, -1, 1, *k);
         }
-        if (progress(nodes[receiver].echoValueReceived, nodes[receiver].localK))
+        if (progress(nodes[receiver].echoValueReceived, *k))
         {
-            nodes[receiver].localK = nodes[receiver].localK + 1;
-            sendMessage(receiver, -1, 0, nodes[receiver].localK);
-            if (nodes[receiver].localK % ROUND_LENGTH == 0)
+            *k = *k + 1;
+            sendMessage(receiver, -1, 0, *k);
+            if (*k % ROUND_LENGTH == 0)
             {
-                nodes[receiver].round = nodes[receiver].localK / ROUND_LENGTH;
+                nodes[receiver].round = *k / ROUND_LENGTH;
                 // nodes[receiver].round++;
-                round_action(receiver, nodes[receiver].round, nodes[receiver].localK);
+                round_action(receiver, nodes[receiver].round, *k);
             }
         }
-        if (catchUp(nodes[receiver].echoValueReceived, nodes[receiver].localK))
+        if (catchUp(nodes[receiver].echoValueReceived, *k))
         {
-            nodes[receiver].localK = message.value;
-            sendMessage(receiver, -1, 1, nodes[receiver].localK);
-            if (nodes[receiver].localK % ROUND_LENGTH == 0)
+            *k = message.value;
+            sendMessage(receiver, -1, 1, *k);
+            if (*k % ROUND_LENGTH == 0)
             {
-                nodes[receiver].round = nodes[receiver].localK / ROUND_LENGTH;
+                nodes[receiver].round = *k / ROUND_LENGTH;
                 // nodes[receiver].round++;
-                round_action(receiver, nodes[receiver].round, nodes[receiver].localK);
+                round_action(receiver, nodes[receiver].round, *k);
             }
         }
     }
