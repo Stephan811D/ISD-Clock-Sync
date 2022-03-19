@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 
 #include "clock_sync.h"
 
@@ -16,7 +18,7 @@ typedef struct message_queue_struct
 } message_queue_t;
 
 message_queue_t *messages = NULL;
-uint64_t now = 0;
+uint64_t now = 0, i = 0;
 uint64_t round_len = 100;
 
 void insert_message(message_queue_t *new)
@@ -47,10 +49,29 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     // printf("%d \n", rand() % n);
     // printf("%d \n", receiver);
 
-    // if (!(receiver == rand() % n))
+    //if (!(receiver == rand() % n))
     //{
-    insert_message(new);
+        //insert_message(new);
     //}
+
+/*
+    int randomnumber = rand() % 150; //generate random number between 1 and 150
+    if ((69 != randomnumber))      
+    {
+        insert_message(new); //if random number does not equal 69 (probability 1:150) --> insert message 
+    }
+*/
+    
+    if (i<150) //skip every 100th message
+    {
+        insert_message(new);
+        i++;
+    }
+    else
+    {
+        i=0;
+    }
+    
 }
 
 void round_action(uint8_t p, uint64_t round, uint64_t clock)
@@ -60,6 +81,7 @@ void round_action(uint8_t p, uint64_t round, uint64_t clock)
 
 int main()
 {
+    srand(time(NULL));
     for (uint8_t i = 0; i < 4; i++)
         init(i);
 
