@@ -18,12 +18,12 @@ typedef struct message_struct
 typedef struct node_struct
 {
     int8_t id;
-    uint32_t localK;
+    uint64_t localK;
     uint16_t round;
-    int initValueReceived[4];
-    int echoValueReceived[4];
+    int64_t initValueReceived[4];
+    int64_t echoValueReceived[4];
     bool echoSent;
-    int16_t lastEcho;
+    uint64_t lastEcho;
 } Node;
 
 #ifdef __cplusplus
@@ -35,11 +35,11 @@ extern "C"
     void start(uint8_t id);
     void receive(uint8_t sender, uint8_t receiver, message_t message);
     void round_action(uint8_t p, uint64_t round, uint64_t clock);
-    void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint32_t value);
-    int acceptInitK(int initValuesArray[], int value);
-    int acceptEchoK(int echoValuesArray[], int value);
-    int progress(int echoValuesArray[], int value);
-    int catchUp(int echoValuesArray[], int value);
+    void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value);
+    int acceptInitK(int64_t initValuesArray[], uint64_t value);
+    int acceptEchoK(int64_t echoValuesArray[], uint64_t value);
+    int progress(int64_t echoValuesArray[], uint64_t value);
+    int catchUp(int64_t echoValuesArray[], uint64_t value);
 #ifdef __cplusplus
 }
 #endif

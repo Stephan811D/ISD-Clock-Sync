@@ -46,32 +46,27 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     new->delivery_time = now + rand() % ((9 * round_len) / 10) + 1;
     new->next = NULL;
 
-    // printf("%d \n", rand() % n);
-    // printf("%d \n", receiver);
-
-    //if (!(receiver == rand() % n))
-    //{
-        //insert_message(new);
-    //}
-
-/*
-    int randomnumber = rand() % 150; //generate random number between 1 and 150
-    if ((69 != randomnumber))      
+    /*
+    int randomnumber = rand() % 10; //generate random number between 1 and 10
+    if ((1 != randomnumber))      
     {
-        insert_message(new); //if random number does not equal 69 (probability 1:150) --> insert message 
+        insert_message(new); //if TRUE (probability 1:10) --> drop message 
     }
-*/
     
-    if (i<150) //skip every 100th message
-    {
+  
+    if (! (message.value<4 && (receiver==3 || sender==3) )) //start process3 after k >3
+    {        
         insert_message(new);
-        i++;
-    }
-    else
-    {
-        i=0;
     }
     
+    if (! (message.value>150 && (receiver==1 || sender==1) )) //stop process1 after k >150
+    {        
+        insert_message(new);
+    }
+    */
+    
+    insert_message(new);
+
 }
 
 void round_action(uint8_t p, uint64_t round, uint64_t clock)
@@ -81,7 +76,7 @@ void round_action(uint8_t p, uint64_t round, uint64_t clock)
 
 int main()
 {
-    srand(time(NULL));
+    //srand(time(NULL));
     for (uint8_t i = 0; i < 4; i++)
         init(i);
 
@@ -91,20 +86,17 @@ int main()
     do
     {
         while (messages != NULL && messages->delivery_time == now)
-        {
+        {   i++;
+            //printf("%d\n",i);
             message_queue_t *message = messages;
             messages = messages->next;
-
-            // if (!(message->receiver == rand() % n))
-            {
-                receive(message->sender, message->receiver, message->message);
-            }
+            receive(message->sender, message->receiver, message->message);
 
             free(message);
         }
         now++;
         // printf("%llu\n", now);
     } while (messages != NULL && now < 10000 * round_len);
+    //printf("messages: %d now:%d \n",messages,now);
 }
 
-// uint64_t
