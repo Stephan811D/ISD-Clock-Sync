@@ -8,6 +8,9 @@
         "algorithm": "c",
         "stdio.h": "c",
         "type_traits": "c",
-        "limits": "c"
+        "limits": "c",
+        "stdint.h": "c",
+        "string.h": "c",
+        "stdbool.h": "c"
     }
 }

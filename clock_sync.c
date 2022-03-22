@@ -13,17 +13,17 @@ Node nodes[n];
 void init(uint8_t id)
 {
     nodes[id].id = id;
-    nodes[id].localK = 0;
+    nodes[id].k = 0;
     nodes[id].round = 0;
     nodes[id].echoSent = false;
     nodes[id].lastEcho = 0;
     for (int i = 0; i < n; i++)
     {
-        nodes[id].initValueReceived[i] = -1;
-        nodes[id].echoValueReceived[i] = -1;
-        nodes[id].consensusValues[i] = -1;
+        nodes[id].initValues[i] = -1;
+        nodes[id].echoValues[i] = -1;
+        nodes[id].consensValues[i] = -1;
     }
-    printf("init process: %d  \n", id);
+    printf("init process: %d\n", id);
 }
 
 void start(uint8_t id)
@@ -34,11 +34,11 @@ void start(uint8_t id)
 void receive(uint8_t sender, uint8_t receiver, message_t message)
 {
     uint64_t *k;
-    k = &nodes[receiver].localK;
+    k = &nodes[receiver].k; //using pointer for readability
 
     if (message.message_type == init_message)
     {
-        nodes[receiver].initValueReceived[sender] = message.value;
+        nodes[receiver].initValues[sender] = message.value;
 
         if (message.value == 0)
         {
@@ -51,67 +51,65 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
                 sendMessage(receiver, sender, 0, 0);
             }
         }
-        if (acceptInitK(nodes[receiver].initValueReceived, *k))
+        if (acceptInitK(nodes[receiver].initValues, *k))
         {
             sendMessage(receiver, -1, 1, *k);
         }
     }
     else if (message.message_type == echo_message)
     {
-        nodes[receiver].echoValueReceived[sender] = message.value;
+        nodes[receiver].echoValues[sender] = message.value;
 
-        if (acceptEchoK(nodes[receiver].echoValueReceived, *k))
+        if (acceptEchoK(nodes[receiver].echoValues, *k))
         {
             sendMessage(receiver, -1, 1, *k);
         }
-        if (progress(nodes[receiver].echoValueReceived, *k))
+        if (progress(nodes[receiver].echoValues, *k))
         {
             *k = *k + 1;
             sendMessage(receiver, -1, 0, *k);
-            if (*k % ROUND_LENGTH == 0)
-            {
-                nodes[receiver].round = *k / ROUND_LENGTH;
-                // round_action(receiver, nodes[receiver].round, *k);
-                round_action_consensus(&nodes[receiver]);
-            }
         }
-        if (catchUp(nodes[receiver].echoValueReceived, *k))
+        if (catchUp(nodes[receiver].echoValues, *k))
         {
             *k = message.value;
             sendMessage(receiver, -1, 1, *k);
-            if (*k % ROUND_LENGTH == 0)
-            {
-                nodes[receiver].round = *k / ROUND_LENGTH;
-                round_action_consensus(&nodes[receiver]);
-                // round_action_consensus(receiver, nodes[receiver].round, nodes[receiver]);
-            }
         }
+
     }
-    else if (message.message_type == consensus_message)
+    else if (message.message_type == consens_message)
     {
         int valueReceived = 0;
 
         for (int i = 0; i < n; i++)
         {
-            if (nodes[receiver].consensusValues[i] == -1)
+            if (nodes[receiver].consensValues[i] == -1)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    if (nodes[receiver].consensusValues[j] == message.value)
+                    if (nodes[receiver].consensValues[j] == message.value)
                     {
                         valueReceived = 1;
                     }
                 }
                 if (valueReceived == 0)
                 {
-                    nodes[receiver].consensusValues[i] = message.value;
+                    nodes[receiver].consensValues[i] = message.value;
                 }
             }
         }
     }
     else
     {
-        // printf("wrong message_type\n");
+        printf("wrong message_type\n");
+    }
+    if (*k % ROUND_LENGTH == 0)
+    {
+        if(*k / ROUND_LENGTH > nodes[receiver].round)
+        {
+            round_action(&nodes[receiver]);nodes[receiver].round = *k / ROUND_LENGTH;
+            
+            //round_action_old(receiver, nodes[receiver].round,*k);
+        }
     }
 }
 
@@ -133,7 +131,7 @@ void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value)
     }
     else if (type == 2)
     {
-        message.message_type = consensus_message;
+        message.message_type = consens_message;
     }
 
     if (receiver == -1)

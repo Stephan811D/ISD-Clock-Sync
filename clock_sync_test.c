@@ -48,18 +48,20 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     // Test cases
 
     /*
+    //drop random messages
     int randomnumber = rand() % 10; //generate random number between 1 and 10
     if ((1 != randomnumber))
     {
         insert_message(new); //if TRUE (probability 1:10) --> drop message
     }
 
-
+    //start process late
     if (! (message.value<4 && (receiver==3 || sender==3) )) //start process3 after k >3
     {
         insert_message(new);
     }
 
+    //process outage
     if (! (message.value>150 && (receiver==1 || sender==1) )) //stop process1 after k >150
     {
         insert_message(new);
@@ -69,36 +71,38 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     insert_message(new);
 }
 
-void round_action(uint8_t p, uint64_t round, uint64_t clock)
+void round_action_old(uint8_t p, uint64_t round, uint64_t clock)
 {
     printf("%d: %lld %lld %lld\n", p, round, clock, now);
 }
 
-uint16_t read_input(uint8_t id)
+uint16_t getValue(uint8_t id, uint16_t rd)
 {
-    if (id == 0)
+    int temp = 0;
+    switch (id)
     {
-        return 4;
-    }
-    else if (id == 1)
-    {
-        return 6;
-    }
-    else if (id = 2)
-    {
-        return 8;
-    }
-    else if (id = 3)
-    {
-        return 12;
+    case 0:
+        temp = rd;
+        break;
+    case 1:
+        temp = rd+2;
+        break;
+    case 2:
+        temp = rd+4;
+        break;
+    case 3:
+        temp = rd+6;
+        break;
+    default:
+        break;
     }
 
-    // return id;
+    return temp;
 }
 
 void set_result(uint8_t id, uint16_t result, uint16_t value)
 {
-    printf("%d: Result: %d Value: %d\n", id, result, value);
+    printf("Id %d: Result: %d Value: %d\n", id, result, value);
 }
 
 int main()
@@ -114,7 +118,6 @@ int main()
         while (messages != NULL && messages->delivery_time == now)
         {
             i++;
-            // printf("%d\n",i);
             message_queue_t *message = messages;
             messages = messages->next;
             receive(message->sender, message->receiver, message->message);
