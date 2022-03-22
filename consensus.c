@@ -1,13 +1,11 @@
 #include "clock_sync.h"
-#include <stdio.h>
-#include <stdint.h>
 
 #define n 4
+bool crash = false;
 
 void round_action_consensus(Node *node)
 {
     int round_action;
-
     if (node->round <= 3)
     {
         round_action = node->round - 1;
@@ -17,11 +15,13 @@ void round_action_consensus(Node *node)
         round_action = (node->round - 1) % 3;
     }
 
-    // printf("%d\n", round_action);
-
     switch (round_action)
     {
     case 0:
+        for (int i = 0; i < n; i++)
+        {
+            node->consensusValues[i] = -1;
+        }
         init_send(node);
         break;
     case 1:
@@ -31,8 +31,6 @@ void round_action_consensus(Node *node)
         decision(node);
         break;
     }
-
-    printf("P=%d R=%d V1=%d V2=%d V3=%d V4=%d\n", node->id, node->round, node->consensusValues[0], node->consensusValues[1], node->consensusValues[2], node->consensusValues[3]);
 }
 
 // ROUND 1
@@ -41,20 +39,28 @@ void init_send(Node *node)
     uint16_t readValue = read_input(node->id);
 
     node->consensusValues[node->id] = readValue;
-    sendMessage(node->id, -1, 2, readValue);
-
-    // printf("ID: %d  INPUT:%d\n", node->id, readValue);
+    if (node->id == 0 && crash == 0)
+    {
+        sendMessage(node->id, 1, 2, readValue);
+        crash = 1;
+    }
+    else if (node->id != 0 || node->round >= 12)
+    {
+        sendMessage(node->id, -1, 2, readValue);
+    }
 }
 
 // ROUND 2
 void safety_send(Node *node)
 {
-    for (int i = 0; i < n; i++)
+    if (node->id != 0 || node->round >= 12)
     {
-        if (node->consensusValues[i] != -1)
+        for (int i = 0; i < n; i++)
         {
-            // printf("%d\n", node->consensusValues[i]);
-            sendMessage(node->id, -1, 2, node->consensusValues[i]);
+            if (node->consensusValues[i] != -1)
+            {
+                sendMessage(node->id, -1, 2, node->consensusValues[i]);
+            }
         }
     }
 }
@@ -62,17 +68,18 @@ void safety_send(Node *node)
 // ROUND 3
 void decision(Node *node)
 {
-    uint16_t minValue = node->consensusValues[node->id];
-
-    for (int i = 0; i < n; i++)
+    if (node->id != 0 || node->round >= 12)
     {
-        // printf("HERE\n");
-        if (node->consensusValues[i] < minValue && node->consensusValues[i] >= 0)
+        uint16_t minValue = node->consensusValues[node->id];
+
+        for (int i = 0; i < n; i++)
         {
-
-            minValue = node->consensusValues[i];
+            // printf("HERE\n");
+            if (node->consensusValues[i] < minValue && node->consensusValues[i] >= 0)
+            {
+                minValue = node->consensusValues[i];
+            }
         }
+        set_result(node->id, minValue, node->consensusValues[node->id]);
     }
-
-    // set_result(node->id, minValue, node->consensusValues[node->id]);
 }

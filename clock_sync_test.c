@@ -45,6 +45,8 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     new->delivery_time = now + rand() % ((9 * round_len) / 10) + 1;
     new->next = NULL;
 
+    // Test cases
+
     /*
     int randomnumber = rand() % 10; //generate random number between 1 and 10
     if ((1 != randomnumber))
@@ -74,7 +76,24 @@ void round_action(uint8_t p, uint64_t round, uint64_t clock)
 
 uint16_t read_input(uint8_t id)
 {
-    return id;
+    if (id == 0)
+    {
+        return 4;
+    }
+    else if (id == 1)
+    {
+        return 6;
+    }
+    else if (id = 2)
+    {
+        return 8;
+    }
+    else if (id = 3)
+    {
+        return 12;
+    }
+
+    // return id;
 }
 
 void set_result(uint8_t id, uint16_t result, uint16_t value)
@@ -84,7 +103,6 @@ void set_result(uint8_t id, uint16_t result, uint16_t value)
 
 int main()
 {
-    // srand(time(NULL));
     for (uint8_t i = 0; i < 4; i++)
         init(i);
 

@@ -28,17 +28,11 @@ void init(uint8_t id)
 
 void start(uint8_t id)
 {
-    // sendMessage(id, -1, 0, 0);
     sendMessage(nodes[id].id, -1, 0, 0);
 }
 
 void receive(uint8_t sender, uint8_t receiver, message_t message)
 {
-    /*
-    printf("val=%d typ=%d K0=%d K1=%d K2=%d K3=%d\n", message.value, message.message_type, nodes[0].localK, nodes[1].localK, nodes[2].localK, nodes[3].localK);
-    printf("R=%d S=%d E0=%d E1=%d E2=%d E3=%d\n",receiver, sender, nodes[receiver].echoValueReceived[0], nodes[receiver].echoValueReceived[1], nodes[receiver].echoValueReceived[2], nodes[receiver].echoValueReceived[3]);
-    printf("R=%d S=%d I0=%d I1=%d I2=%d I3=%d\n\n",receiver, sender, nodes[receiver].initValueReceived[0], nodes[receiver].initValueReceived[1], nodes[receiver].initValueReceived[2], nodes[receiver].initValueReceived[3]);
-    */
     uint64_t *k;
     k = &nodes[receiver].localK;
 
@@ -95,28 +89,29 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
     }
     else if (message.message_type == consensus_message)
     {
-        int i = 0;
+        int valueReceived = 0;
 
-        do
+        for (int i = 0; i < n; i++)
         {
             if (nodes[receiver].consensusValues[i] == -1)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    if (nodes[receiver].consensusValues[j] != message.value)
+                    if (nodes[receiver].consensusValues[j] == message.value)
                     {
-                        nodes[receiver].consensusValues[i] = message.value;
-                        i = n;
+                        valueReceived = 1;
                     }
                 }
+                if (valueReceived == 0)
+                {
+                    nodes[receiver].consensusValues[i] = message.value;
+                }
             }
-
-            i++;
-        } while (i < n);
+        }
     }
     else
     {
-        printf("wrong message_type");
+        // printf("wrong message_type\n");
     }
 }
 
