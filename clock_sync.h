@@ -6,7 +6,8 @@
 typedef enum
 {
     init_message,
-    echo_message
+    echo_message,
+    consensus_message
 } message_type_t;
 
 typedef struct message_struct
@@ -17,6 +18,7 @@ typedef struct message_struct
 
 typedef struct node_struct
 {
+    // clock sync
     int8_t id;
     uint64_t localK;
     uint16_t round;
@@ -24,6 +26,9 @@ typedef struct node_struct
     int64_t echoValueReceived[4];
     bool echoSent;
     uint64_t lastEcho;
+
+    // consensus
+    int16_t consensusValues[4];
 } Node;
 
 #ifdef __cplusplus
@@ -40,6 +45,15 @@ extern "C"
     int acceptEchoK(int64_t echoValuesArray[], uint64_t value);
     int progress(int64_t echoValuesArray[], uint64_t value);
     int catchUp(int64_t echoValuesArray[], uint64_t value);
+
+    // consensus
+    void set_result(uint8_t id, uint16_t result, uint16_t value);
+    uint16_t read_input(uint8_t id);
+
+    void round_action_consensus(Node *node);
+    void init_send(Node *node);
+    void safety_send();
+    void decision();
 #ifdef __cplusplus
 }
 #endif

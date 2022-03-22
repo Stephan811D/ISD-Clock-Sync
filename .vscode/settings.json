@@ -5,6 +5,9 @@
         "random": "c",
         "cmath": "c",
         "cstdlib": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "stdio.h": "c",
+        "type_traits": "c",
+        "limits": "c"
     }
 }

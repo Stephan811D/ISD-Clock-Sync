@@ -3,7 +3,6 @@
 #include <string.h>
 #include <time.h>
 
-
 #include "clock_sync.h"
 
 #define n 4
@@ -48,25 +47,24 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
 
     /*
     int randomnumber = rand() % 10; //generate random number between 1 and 10
-    if ((1 != randomnumber))      
+    if ((1 != randomnumber))
     {
-        insert_message(new); //if TRUE (probability 1:10) --> drop message 
+        insert_message(new); //if TRUE (probability 1:10) --> drop message
     }
-    
-  
+
+
     if (! (message.value<4 && (receiver==3 || sender==3) )) //start process3 after k >3
-    {        
+    {
         insert_message(new);
     }
-    
+
     if (! (message.value>150 && (receiver==1 || sender==1) )) //stop process1 after k >150
-    {        
+    {
         insert_message(new);
     }
     */
-    
-    insert_message(new);
 
+    insert_message(new);
 }
 
 void round_action(uint8_t p, uint64_t round, uint64_t clock)
@@ -74,9 +72,19 @@ void round_action(uint8_t p, uint64_t round, uint64_t clock)
     printf("%d: %lld %lld %lld\n", p, round, clock, now);
 }
 
+uint16_t read_input(uint8_t id)
+{
+    return id;
+}
+
+void set_result(uint8_t id, uint16_t result, uint16_t value)
+{
+    printf("%d: Result: %d Value: %d\n", id, result, value);
+}
+
 int main()
 {
-    //srand(time(NULL));
+    // srand(time(NULL));
     for (uint8_t i = 0; i < 4; i++)
         init(i);
 
@@ -86,8 +94,9 @@ int main()
     do
     {
         while (messages != NULL && messages->delivery_time == now)
-        {   i++;
-            //printf("%d\n",i);
+        {
+            i++;
+            // printf("%d\n",i);
             message_queue_t *message = messages;
             messages = messages->next;
             receive(message->sender, message->receiver, message->message);
@@ -97,6 +106,5 @@ int main()
         now++;
         // printf("%llu\n", now);
     } while (messages != NULL && now < 10000 * round_len);
-    //printf("messages: %d now:%d \n",messages,now);
+    // printf("messages: %d now:%d \n",messages,now);
 }
-
