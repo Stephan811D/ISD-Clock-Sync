@@ -1,11 +1,31 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 #include "clock_sync.h"
 
-#define n 4
+/* CLOCK SYNC - TESTCASES */
+
+/* DROP RANDOM MESSAGES */
+
+/*
+    set to true to drop random messages
+    probability 1:drop_rate
+*/
+bool drop_random_messages = false;
+uint8_t drop_rate = 50;
+
+/* NODE AT SPECIFIC K*/
+
+/*
+    start node x at specific k value
+*/
+bool start_node_at_specific_k = false;
+uint8_t start_node_at_specific_k_node = 0;
+uint8_t start_node_at_specific_k_value = 2;
+
+/*
+    stop node x at specific k value
+*/
+bool stop_node_at_specific_k = false;
+uint8_t stop_node_at_specific_k_node = 0;
+uint8_t stop_node_at_specific_k_value = 150;
 
 typedef struct message_queue_struct
 {
@@ -45,60 +65,38 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     new->delivery_time = now + rand() % ((9 * round_len) / 10) + 1;
     new->next = NULL;
 
-    // Test cases
+    /* CLOCK SYNC - TESTCASES */
 
-    /*
-    int randomnumber = rand() % 10; //generate random number between 1 and 10
-    if ((1 != randomnumber))
+    if (drop_random_messages)
     {
-        insert_message(new); //if TRUE (probability 1:10) --> drop message
+        if (0 != (rand() % drop_rate))
+        {
+            insert_message(new);
+        }
     }
-
-
-    if (! (message.value<4 && (receiver==3 || sender==3) )) //start process3 after k >3
+    else if (start_node_at_specific_k)
+    {
+        if (!(message.value < start_node_at_specific_k_value && (receiver == start_node_at_specific_k_node || sender == start_node_at_specific_k_node)))
+        {
+            insert_message(new);
+        }
+    }
+    else if (stop_node_at_specific_k)
+    {
+        if (!(message.value > stop_node_at_specific_k_value && (receiver == stop_node_at_specific_k_node || sender == stop_node_at_specific_k_node)))
+        {
+            insert_message(new);
+        }
+    }
+    else
     {
         insert_message(new);
     }
-
-    if (! (message.value>150 && (receiver==1 || sender==1) )) //stop process1 after k >150
-    {
-        insert_message(new);
-    }
-    */
-
-    insert_message(new);
 }
 
 void round_action(uint8_t p, uint64_t round, uint64_t clock)
 {
     printf("%d: %lld %lld %lld\n", p, round, clock, now);
-}
-
-uint16_t read_input(uint8_t id)
-{
-    if (id == 0)
-    {
-        return 4;
-    }
-    else if (id == 1)
-    {
-        return 6;
-    }
-    else if (id = 2)
-    {
-        return 8;
-    }
-    else if (id = 3)
-    {
-        return 12;
-    }
-
-    // return id;
-}
-
-void set_result(uint8_t id, uint16_t result, uint16_t value)
-{
-    printf("%d: Result: %d Value: %d\n", id, result, value);
 }
 
 int main()
@@ -114,15 +112,12 @@ int main()
         while (messages != NULL && messages->delivery_time == now)
         {
             i++;
-            // printf("%d\n",i);
             message_queue_t *message = messages;
             messages = messages->next;
             receive(message->sender, message->receiver, message->message);
-
             free(message);
         }
         now++;
         // printf("%llu\n", now);
     } while (messages != NULL && now < 10000 * round_len);
-    // printf("messages: %d now:%d \n",messages,now);
 }

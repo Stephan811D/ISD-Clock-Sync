@@ -1,89 +1,114 @@
 #include "clock_sync.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 
-#define f 1
-#define n 4
-#define ROUND_LENGTH 100
+typedef enum
+{
+    clock_sync,
+    consensus
+} test_mode_t;
+
+/* TEST MODE */
+
+/*
+    clock_sync: output = clock sync algorithm;
+    consensus: output = consenus algorithm;
+*/
+
+test_mode_t test_mode = consensus;
+
+/* DEBUG */
+bool debug_mode = false;
 
 Node nodes[n];
 
 void init(uint8_t id)
 {
     nodes[id].id = id;
-    nodes[id].localK = 0;
+    nodes[id].local_k = 0;
     nodes[id].round = 0;
-    nodes[id].echoSent = false;
-    nodes[id].lastEcho = 0;
+    nodes[id].echo_sent = false;
+    nodes[id].last_echo = 0;
     for (int i = 0; i < n; i++)
     {
-        nodes[id].initValueReceived[i] = -1;
-        nodes[id].echoValueReceived[i] = -1;
-        nodes[id].consensusValues[i] = -1;
+        nodes[id].init_value_received[i] = -1;
+        nodes[id].echo_value_received[i] = -1;
+        nodes[id].consensus_values[i] = -1;
     }
-    printf("init process: %d  \n", id);
+    if (debug_mode)
+    {
+        printf("init process: %d  \n", id);
+    }
 }
 
 void start(uint8_t id)
 {
-    sendMessage(nodes[id].id, -1, 0, 0);
+    send_message(nodes[id].id, -1, 0, 0);
 }
 
 void receive(uint8_t sender, uint8_t receiver, message_t message)
 {
     uint64_t *k;
-    k = &nodes[receiver].localK;
+    k = &nodes[receiver].local_k;
 
     if (message.message_type == init_message)
     {
-        nodes[receiver].initValueReceived[sender] = message.value;
+        nodes[receiver].init_value_received[sender] = message.value;
 
         if (message.value == 0)
         {
-            if (nodes[receiver].echoSent)
+            if (nodes[receiver].echo_sent)
             {
-                sendMessage(receiver, sender, 1, nodes[receiver].lastEcho);
+                send_message(receiver, sender, 1, nodes[receiver].last_echo);
             }
             else
             {
-                sendMessage(receiver, sender, 0, 0);
+                send_message(receiver, sender, 0, 0);
             }
         }
-        if (acceptInitK(nodes[receiver].initValueReceived, *k))
+        if (accept_init_k(nodes[receiver].init_value_received, *k))
         {
-            sendMessage(receiver, -1, 1, *k);
+            send_message(receiver, -1, 1, *k);
         }
     }
     else if (message.message_type == echo_message)
     {
-        nodes[receiver].echoValueReceived[sender] = message.value;
+        nodes[receiver].echo_value_received[sender] = message.value;
 
-        if (acceptEchoK(nodes[receiver].echoValueReceived, *k))
+        if (accept_echo_k(nodes[receiver].echo_value_received, *k))
         {
-            sendMessage(receiver, -1, 1, *k);
+            send_message(receiver, -1, 1, *k);
         }
-        if (progress(nodes[receiver].echoValueReceived, *k))
+        if (progress(nodes[receiver].echo_value_received, *k))
         {
             *k = *k + 1;
-            sendMessage(receiver, -1, 0, *k);
+            send_message(receiver, -1, 0, *k);
             if (*k % ROUND_LENGTH == 0)
             {
                 nodes[receiver].round = *k / ROUND_LENGTH;
-                // round_action(receiver, nodes[receiver].round, *k);
-                round_action_consensus(&nodes[receiver]);
+                if (test_mode == clock_sync)
+                {
+                    round_action(receiver, nodes[receiver].round, *k);
+                }
+                else if (test_mode == consensus)
+                {
+                    round_action_consensus(&nodes[receiver]);
+                }
             }
         }
-        if (catchUp(nodes[receiver].echoValueReceived, *k))
+        if (catch_up(nodes[receiver].echo_value_received, *k))
         {
             *k = message.value;
-            sendMessage(receiver, -1, 1, *k);
+            send_message(receiver, -1, 1, *k);
             if (*k % ROUND_LENGTH == 0)
             {
                 nodes[receiver].round = *k / ROUND_LENGTH;
-                round_action_consensus(&nodes[receiver]);
-                // round_action_consensus(receiver, nodes[receiver].round, nodes[receiver]);
+                if (test_mode == clock_sync)
+                {
+                    round_action(receiver, nodes[receiver].round, *k);
+                }
+                else if (test_mode == consensus)
+                {
+                    round_action_consensus(&nodes[receiver]);
+                }
             }
         }
     }
@@ -93,29 +118,25 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
 
         for (int i = 0; i < n; i++)
         {
-            if (nodes[receiver].consensusValues[i] == -1)
+            if (nodes[receiver].consensus_values[i] == -1)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    if (nodes[receiver].consensusValues[j] == message.value)
+                    if (nodes[receiver].consensus_values[j] == message.value)
                     {
                         valueReceived = 1;
                     }
                 }
                 if (valueReceived == 0)
                 {
-                    nodes[receiver].consensusValues[i] = message.value;
+                    nodes[receiver].consensus_values[i] = message.value;
                 }
             }
         }
     }
-    else
-    {
-        // printf("wrong message_type\n");
-    }
 }
 
-void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value)
+void send_message(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value)
 {
     message_t message;
     message.value = value;
@@ -128,8 +149,8 @@ void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value)
     {
         message.message_type = echo_message;
 
-        nodes[sender].echoSent = true;
-        nodes[sender].lastEcho = value;
+        nodes[sender].echo_sent = true;
+        nodes[sender].last_echo = value;
     }
     else if (type == 2)
     {
@@ -141,16 +162,23 @@ void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value)
         for (int i = 0; i < n; i++)
         {
             send(sender, i, message);
-            // printf("node %d: type: %d value: %d send to: %d \n", sender, message.message_type, message.value, i);
+            if (debug_mode)
+            {
+                printf("node %d: type: %d value: %d send to: %d \n", sender, message.message_type, message.value, i);
+            }
         }
     }
     else if (receiver >= 0)
     {
         send(sender, receiver, message);
+        if (debug_mode)
+        {
+            printf("node %d: type: %d value: %d send to: %d \n", sender, message.message_type, message.value, receiver);
+        }
     }
 }
 
-int acceptInitK(int64_t initValuesArray[], uint64_t value)
+int accept_init_k(int64_t initValuesArray[], uint64_t value)
 {
     int counter = 0;
 
@@ -168,13 +196,13 @@ int acceptInitK(int64_t initValuesArray[], uint64_t value)
     return 0;
 }
 
-int acceptEchoK(int64_t echoValuesArray[], uint64_t value)
+int accept_echo_k(int64_t echo_values_array[], uint64_t value)
 {
     int counter = 0;
 
     for (int i = 0; i < n; i++)
     {
-        if (value == echoValuesArray[i] || value == echoValuesArray[i] + 1)
+        if (value == echo_values_array[i] || value == echo_values_array[i] + 1)
         {
             counter++;
         }
@@ -186,13 +214,13 @@ int acceptEchoK(int64_t echoValuesArray[], uint64_t value)
     return 0;
 }
 
-int progress(int64_t echoValuesArray[], uint64_t value)
+int progress(int64_t echo_values_array[], uint64_t value)
 {
     int counter = 0;
 
     for (int i = 0; i < n; i++)
     {
-        if (value == echoValuesArray[i] || value == echoValuesArray[i] + 1)
+        if (value == echo_values_array[i] || value == echo_values_array[i] + 1)
         {
             counter++;
         }
@@ -204,19 +232,19 @@ int progress(int64_t echoValuesArray[], uint64_t value)
     return 0;
 }
 
-int catchUp(int64_t echoValuesArray[], uint64_t value)
+int catch_up(int64_t echo_values_array[], uint64_t value)
 {
     int counter = 0;
 
     for (int i = 0; i < n; i++)
     {
-        if (echoValuesArray[i] > value)
+        if (echo_values_array[i] > value)
         {
             for (int j = 0; j < n; j++)
-            { // check received values, if two values are same or within 1 difference
+            {
                 if (i != j)
                 {
-                    if (abs(echoValuesArray[i] - echoValuesArray[j]) <= 1 || (echoValuesArray[i] - echoValuesArray[j]) == 0)
+                    if (abs(echo_values_array[i] - echo_values_array[j]) <= 1 || (echo_values_array[i] - echo_values_array[j]) == 0)
                     {
                         counter++;
                     }

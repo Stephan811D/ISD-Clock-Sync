@@ -8,6 +8,7 @@
         "algorithm": "c",
         "stdio.h": "c",
         "type_traits": "c",
-        "limits": "c"
+        "limits": "c",
+        "test_cases.h": "c"
     }
 }
