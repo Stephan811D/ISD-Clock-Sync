@@ -2,10 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
+
 
 #include "clock_sync.h"
 
 #define n 4
+bool lateStart=0, crash=0, messageDrop=0;
+
 
 typedef struct message_queue_struct
 {
@@ -46,29 +50,32 @@ void send(uint8_t sender, uint8_t receiver, message_t message)
     new->next = NULL;
 
     // Test cases
-
-    /*
-    //drop random messages
-    int randomnumber = rand() % 10; //generate random number between 1 and 10
-    if ((1 != randomnumber))
+    if(messageDrop)//drop random messages
     {
-        insert_message(new); //if TRUE (probability 1:10) --> drop message
+        int randomnumber = rand() % 10; //generate random number between 1 and 10
+        if ((1 != randomnumber))
+        {
+            insert_message(new); //if TRUE (probability 1:10) --> drop message
+        }
     }
-
-    //start process late
-    if (! (message.value<4 && (receiver==3 || sender==3) )) //start process3 after k >3
+    else if (lateStart) //start process late
+    {
+        if (! (message.value<4 && (receiver==3 || sender==3) )) //start process3 after k >3
+        {
+            insert_message(new);
+        }    
+    }
+    else if (crash)//process crash
+    {
+        if (! (message.value>150 && (receiver==1 || sender==1) )) //stop process1 after k >150
+        {
+            insert_message(new);
+        }
+    }
+    else
     {
         insert_message(new);
-    }
-
-    //process outage
-    if (! (message.value>150 && (receiver==1 || sender==1) )) //stop process1 after k >150
-    {
-        insert_message(new);
-    }
-    */
-
-    insert_message(new);
+    }    
 }
 
 void round_action_old(uint8_t p, uint64_t round, uint64_t clock)

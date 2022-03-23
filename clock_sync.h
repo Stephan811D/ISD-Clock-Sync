@@ -39,8 +39,8 @@ extern "C"
     void receive(uint8_t sender, uint8_t receiver, message_t message);
     void round_action_old(uint8_t p, uint64_t round, uint64_t clock);
     void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value);
-    int acceptInitK(int64_t initValuesArray[], uint64_t value);
-    int acceptEchoK(int64_t echoValuesArray[], uint64_t value);
+    int initK(int64_t initValuesArray[], uint64_t value);
+    int echoK(int64_t echoValuesArray[], uint64_t value);
     int progress(int64_t echoValuesArray[], uint64_t value);
     int catchUp(int64_t echoValuesArray[], uint64_t value);
 

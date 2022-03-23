@@ -51,7 +51,7 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
                 sendMessage(receiver, sender, 0, 0);
             }
         }
-        if (acceptInitK(nodes[receiver].initValues, *k))
+        if (initK(nodes[receiver].initValues, *k))
         {
             sendMessage(receiver, -1, 1, *k);
         }
@@ -60,7 +60,7 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
     {
         nodes[receiver].echoValues[sender] = message.value;
 
-        if (acceptEchoK(nodes[receiver].echoValues, *k))
+        if (echoK(nodes[receiver].echoValues, *k))
         {
             sendMessage(receiver, -1, 1, *k);
         }
@@ -107,7 +107,6 @@ void receive(uint8_t sender, uint8_t receiver, message_t message)
         if(*k / ROUND_LENGTH > nodes[receiver].round)
         {
             round_action(&nodes[receiver]);nodes[receiver].round = *k / ROUND_LENGTH;
-            
             //round_action_old(receiver, nodes[receiver].round,*k);
         }
     }
@@ -148,7 +147,7 @@ void sendMessage(uint8_t sender, int8_t receiver, uint8_t type, uint64_t value)
     }
 }
 
-int acceptInitK(int64_t initValuesArray[], uint64_t value)
+int initK(int64_t initValuesArray[], uint64_t value)
 {
     int counter = 0;
 
@@ -166,7 +165,7 @@ int acceptInitK(int64_t initValuesArray[], uint64_t value)
     return 0;
 }
 
-int acceptEchoK(int64_t echoValuesArray[], uint64_t value)
+int echoK(int64_t echoValuesArray[], uint64_t value)
 {
     int counter = 0;
 

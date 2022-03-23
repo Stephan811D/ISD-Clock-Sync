@@ -22,7 +22,7 @@ void round_action(Node *node) //round action which is now called in consensus.c
         round_action = (node->round - 1) % 3; 
     }
 
-    switch (round_action)       //switch through the consensus finding steps
+    switch (round_action)       //switch through the consens finding steps
     {
         case 0:
             for (int i = 0; i < n; i++)
