@@ -7,7 +7,7 @@
 
 #define n 4
 #define lateStart 0    //round no for late start
-uint8_t crash = 0;         //switch for crash of node 0 --> 1 = node crashes; 0 = normal mode
+uint8_t consensCrash = 0;         //switch for crash of node 0 --> 1 = node crashes; 0 = normal mode
 
 
 void round_action(Node *node) //round action which is now called in consensus.c
@@ -45,10 +45,10 @@ void start_consens(Node *node)
     uint16_t readValue = getValue(node->id, node->round);
 
     node->consensValues[node->id] = readValue;
-    if (node->id == 0 && crash == 1)        //testing the crash of node 0
+    if (node->id == 0 && consensCrash == 1)        //testing the crash of node 0
     {
         sendMessage(node->id, 1, 2, readValue);
-        crash = 2;
+        consensCrash = 2;
     }
     else if (node->id != 0 || ((node->round >= lateStart) && lateStart !=0))    //starting node 0 late 
     {
@@ -58,7 +58,7 @@ void start_consens(Node *node)
 
 void broadcast(Node *node)
 {
-    if (node->id != 0 || ((node->round >= lateStart) && lateStart !=0) || (crash==0 && lateStart==0))
+    if (node->id != 0 || ((node->round >= lateStart) && lateStart !=0) || (consensCrash==0 && lateStart==0))
     {
         for (int i = 0; i < n; i++)
         {
@@ -72,7 +72,7 @@ void broadcast(Node *node)
 
 void decision(Node *node)
 {
-    if (node->id != 0 || ((node->round >= lateStart) && lateStart !=0) || (crash==0 && lateStart==0))
+    if (node->id != 0 || ((node->round >= lateStart) && lateStart !=0) || (consensCrash==0 && lateStart==0))
     {
         uint16_t minValue = node->consensValues[node->id];
 
