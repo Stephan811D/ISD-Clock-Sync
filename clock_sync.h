@@ -47,7 +47,6 @@ extern "C"
     // consens
     void set_result(uint8_t id, uint16_t result, uint16_t value);
     uint16_t getValue(uint8_t id, uint16_t round);
-
     void round_action(Node *node);
     void start_consens(Node *node);
     void broadcast(Node *node);
